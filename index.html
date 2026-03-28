@@ -37,7 +37,6 @@
   .bar-fill { height: 100%; transition: width 1s ease-out; }
   .warning-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #fff5f5; border: 1px dashed #feb2b2; color: #c53030; font-size: 13px; text-align: center; font-weight: 600; }
   
-  /* PAINEL ADM - VISUAL DISCRETO E FUNCIONAL */
   #admin-link { color: #ffffff; font-size: 12px; margin-top: 60px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); z-index: 10; position: relative; }
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; z-index: 9999; color: white; padding: 20px; overflow-y: auto; }
   .adm-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1e293b; color: white; margin-bottom: 30px; }
@@ -102,7 +101,9 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
+// LISTA COMPLETA E CORRIGIDA
 var CANDIDATES = [
+  { id: "cicero",   name: "Cícero da Farmácia", color: "#f59e0b" }, // ADICIONADO DE VOLTA
   { id: "renan",    name: "Renan Lopes",      color: "#1a56db" },
   { id: "polaco",   name: "Vereador Polaco",   color: "#e3a008" },
   { id: "eraclito", name: "Eraclito Gesuino",  color: "#0e9f6e" },
@@ -172,7 +173,6 @@ function showResults() {
     });
     document.getElementById("chart-bar").innerHTML = html;
     document.getElementById("section-vote").classList.remove("active");
-    document.getElementById("section-thanks").classList.remove("active");
     document.getElementById("section-results").classList.add("active");
   });
 }
