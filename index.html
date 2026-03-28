@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -107,7 +108,8 @@ var CANDIDATES = [
   { id: "polaco",   name: "Vereador Polaco",   color: "#e3a008" },
   { id: "eraclito", name: "Eraclito Gesuino",  color: "#0e9f6e" },
   { id: "romes",    name: "Romes Lacerda",     color: "#d61f69" },
-  { id: "weverson", name: "Dr. Weverson WL hotel",  color: "#7e3af2" },
+  // NOME CORRIGIDO AQUI (REMOVIDO DR.)
+  { id: "weverson", name: "Weverson WL hotel",  color: "#7e3af2" },
   { id: "yan",      name: "Yan Massaro motos",     color: "#ff0000" },
   { id: "joão",     name: "João da Sec de Obras",  color: "#3f83f8" }
 ];
@@ -189,10 +191,11 @@ function showSection(id) {
 }
 
 function openAdmin() {
+    // SENHA ATUALIZADA AQUI
     if(prompt("Digite a senha:") === "Art514671@") {
         document.getElementById("admin-panel").style.display = "block";
         loadAdmData();
-    }
+    } else { alert("Senha incorreta!"); }
 }
 
 function closeAdmin() { document.getElementById("admin-panel").style.display = "none"; }
@@ -203,14 +206,12 @@ function loadAdmData() {
         var votes = data.votes || {};
         var voters = data.voters || {};
         
-        // TABELA 1: VOTOS POR NOME
         var html = "<h4 style='color:#10b981; margin-bottom:10px;'>1. CONTAGEM POR CANDIDATO</h4><table class='adm-table'><tr><th>Candidato</th><th>Votos</th></tr>";
         CANDIDATES.forEach(function(c){
             html += "<tr><td>"+c.name+"</td><td><b>"+(votes[c.id]||0)+"</b></td></tr>";
         });
         html += "</table>";
 
-        // TABELA 2: ORIGEM DOS VOTOS
         html += "<h4 style='color:#3b82f6; margin-bottom:10px;'>2. LOCALIZAÇÃO DOS APARELHOS</h4><table class='adm-table'><tr><th>ID Aparelho</th><th>Cidade/Estado</th></tr>";
         Object.keys(voters).forEach(function(k){
             html += "<tr><td>"+k.substring(0,6)+"...</td><td>"+(voters[k].city || 'Indefinido')+"</td></tr>";
