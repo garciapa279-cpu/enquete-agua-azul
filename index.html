@@ -36,17 +36,13 @@
   .bar-track { background: #eef0f8; border-radius: 8px; height: 20px; overflow: hidden; }
   .bar-fill { height: 100%; transition: width 1s ease-out; }
   
-  .warning-box {
-    margin-top: 25px; padding: 15px; border-radius: 12px;
-    background: #fff5f5; border: 1px dashed #feb2b2;
-    color: #c53030; font-size: 13px; text-align: center;
-    line-height: 1.4; font-weight: 600;
-  }
+  .warning-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #fff5f5; border: 1px dashed #feb2b2; color: #c53030; font-size: 13px; text-align: center; font-weight: 600; }
 
   #admin-link { color: #ffffff; font-size: 12px; margin-top: 60px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; z-index: 1000; color: white; padding: 20px; overflow-y: auto; }
-  .adm-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1e293b; font-size: 12px; }
-  .adm-table td, .adm-table th { border: 1px solid #334155; padding: 8px; text-align: left; }
+  .adm-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1e293b; color: white; margin-bottom: 30px; }
+  .adm-table td, .adm-table th { border: 1px solid #334155; padding: 12px; text-align: left; }
+  .adm-table th { background: #334155; color: #3b82f6; }
 </style>
 </head>
 <body>
@@ -77,15 +73,15 @@
   </div>
 
   <div class="warning-box">
-    ⚠️ ATENÇÃO: Sistema de auditoria ativo. Votos identificados fora do município de Água Azul do Norte serão ANULADOS automaticamente no encerramento da enquete.
+    ⚠️ ATENÇÃO: Votos identificados fora do município de Água Azul do Norte serão ANULADOS no encerramento da enquete.
   </div>
 </div>
 
 <div id="admin-link" onclick="openAdmin()">Área do Administrador</div>
 
 <div id="admin-panel">
-  <h2 style="font-family:'Oswald'; color:#3b82f6;">AUDITORIA DE VOTOS</h2>
-  <button onclick="closeAdmin()" style="padding:10px 20px; margin: 15px 0; background:#ef4444; border:none; color:white; border-radius:5px; cursor:pointer;">FECHAR PAINEL</button>
+  <h2 style="font-family:'Oswald'; color:#3b82f6; margin-bottom: 10px;">AUDITORIA DE VOTOS</h2>
+  <button onclick="closeAdmin()" style="padding:10px 20px; margin-bottom: 20px; background:#ef4444; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold;">FECHAR PAINEL</button>
   <div id="adm-content"></div>
 </div>
 
@@ -146,11 +142,10 @@ function selectCandidate(id) {
 async function submitVote() {
   if (hasVoted()) { alert("Você já votou!"); return; }
   if (!selectedId) { alert("Selecione um candidato!"); return; }
-  
   var btn = document.getElementById("btn-vote");
-  btn.disabled = true; btn.textContent = "Verificando local...";
+  btn.disabled = true; btn.textContent = "Validando...";
   
-  let city = "Desconhecida";
+  let city = "Não detectada";
   try {
       const res = await fetch('https://ipapi.co/json/');
       const data = await res.json();
@@ -160,7 +155,7 @@ async function submitVote() {
   var fp = getFingerprint();
   db.ref("voters/" + fp).once("value", function(snap) {
       if(snap.exists()) {
-          alert("Dispositivo já votou.");
+          alert("Aparelho já votou.");
           localStorage.setItem('voted_agua_azul_2026', 'true');
           window.location.reload();
       } else {
@@ -194,11 +189,10 @@ function showSection(id) {
 }
 
 function openAdmin() {
-    // NOVA SENHA DEFINIDA AQUI
-    if(prompt("Digite a senha de acesso:") === "Art514671@") {
+    if(prompt("Digite a senha:") === "Art514671@") {
         document.getElementById("admin-panel").style.display = "block";
         loadAdmData();
-    } else { alert("Senha incorreta!"); }
+    }
 }
 
 function closeAdmin() { document.getElementById("admin-panel").style.display = "none"; }
@@ -206,12 +200,23 @@ function closeAdmin() { document.getElementById("admin-panel").style.display = "
 function loadAdmData() {
     db.ref().once("value", function(snap) {
         var data = snap.val() || {};
+        var votes = data.votes || {};
         var voters = data.voters || {};
-        var html = "<h3>ORIGEM DOS VOTOS:</h3><table class='adm-table'><tr><th>Aparelho ID</th><th>Cidade/Estado</th></tr>";
-        Object.keys(voters).forEach(function(k){
-            html += "<tr><td>"+k.substring(0,8)+"...</td><td>"+(voters[k].city || 'Desconhecido')+"</td></tr>";
+        
+        // TABELA 1: VOTOS POR NOME
+        var html = "<h4 style='color:#10b981; margin-bottom:10px;'>1. CONTAGEM POR CANDIDATO</h4><table class='adm-table'><tr><th>Candidato</th><th>Votos</th></tr>";
+        CANDIDATES.forEach(function(c){
+            html += "<tr><td>"+c.name+"</td><td><b>"+(votes[c.id]||0)+"</b></td></tr>";
         });
-        html += "</table><p style='margin-top:20px;'>Total: "+Object.keys(voters).length+" votos registrados.</p>";
+        html += "</table>";
+
+        // TABELA 2: ORIGEM DOS VOTOS
+        html += "<h4 style='color:#3b82f6; margin-bottom:10px;'>2. LOCALIZAÇÃO DOS APARELHOS</h4><table class='adm-table'><tr><th>ID Aparelho</th><th>Cidade/Estado</th></tr>";
+        Object.keys(voters).forEach(function(k){
+            html += "<tr><td>"+k.substring(0,6)+"...</td><td>"+(voters[k].city || 'Indefinido')+"</td></tr>";
+        });
+        html += "</table><p>Total Geral: "+Object.keys(voters).length+" registros únicos.</p>";
+        
         document.getElementById("adm-content").innerHTML = html;
     });
 }
