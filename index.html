@@ -3,65 +3,86 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Enquete – Água Azul do Norte</title>
+<title>Enquete – Prefeito de Água Azul do Norte</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet" />
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { min-height: 100vh; background: #0f172a; font-family: 'Crimson Pro', serif; display: flex; flex-direction: column; align-items: center; padding: 20px; color: white; }
-  .card { background: white; border-radius: 20px; padding: 25px; width: 100%; max-width: 500px; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    font-family: 'Crimson Pro', Georgia, serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 16px 100px;
+    position: relative; overflow-x: hidden;
+  }
+  .bg-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse at 20% 20%, #1a56db22 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, #d61f6922 0%, transparent 60%); }
+  header { text-align: center; margin-bottom: 32px; position: relative; z-index: 1; }
+  .badge { display: inline-block; background: linear-gradient(90deg, #1a56db, #7e3af2); color: #fff; font-size: 11px; font-family: monospace; letter-spacing: 3px; padding: 4px 16px; border-radius: 20px; margin-bottom: 14px; text-transform: uppercase; }
+  h1 { font-size: clamp(26px, 5vw, 42px); font-weight: 700; color: #f0f4ff; line-height: 1.15; margin-bottom: 8px; text-shadow: 0 2px 20px #1a56db66; }
+  .card { background: rgba(255,255,255,0.97); border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 560px; box-shadow: 0 24px 80px #00000055; position: relative; z-index: 1; }
   .section { display: none; }
   .section.active { display: block; }
-  .cand-btn { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #ddd; background: #f9f9f9; cursor: pointer; text-align: left; margin-bottom: 8px; font-size: 16px; }
-  .cand-btn.selected { border-color: #1a56db; background: #eef2ff; }
-  .vote-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: linear-gradient(90deg, #1a56db, #7e3af2); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-  .bar-row { margin-bottom: 12px; }
-  .bar-track { background: #eee; height: 15px; border-radius: 10px; overflow: hidden; }
-  .bar-fill { height: 100%; background: #1a56db; transition: width 0.5s; }
-  #admin-link { margin-top: 50px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
+  .cand-btn { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; text-align: left; font-size: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 10px; }
+  .cand-btn.selected { border-color: var(--c); background: #eff6ff; }
+  .cand-dot { width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 50%; }
+  .cand-btn.selected .cand-dot { background: var(--c); border-color: var(--c); }
+  .vote-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: linear-gradient(90deg, #1a56db, #7e3af2); color: #fff; font-family: 'Oswald', sans-serif; font-size: 18px; cursor: pointer; margin-top: 10px; }
+  .results-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: #0e9f6e; color: #fff; font-family: 'Oswald', sans-serif; cursor: pointer; margin-top: 20px; }
+  .bar-row { margin-bottom: 15px; }
+  .bar-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
+  .bar-track { background: #eef0f8; border-radius: 8px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; transition: width 1s ease-out; }
+  .warning-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #fff5f5; border: 1px dashed #feb2b2; color: #c53030; font-size: 13px; text-align: center; font-weight: 600; }
   
-  /* PAINEL ADM - FORÇADO PARA APARECER */
-  #admin-panel { 
-    display: none; 
-    position: fixed; 
-    top:0; left:0; width:100%; height:100%; 
-    background: #0f172a; 
-    z-index: 9999; 
-    padding: 20px; 
-    overflow-y: auto; 
-    color: white !important;
-  }
-  .adm-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #334155; }
-  .adm-table th, .adm-table td { padding: 10px; border: 1px solid #334155; text-align: left; color: white !important; }
-  .adm-table th { background: #1e293b; color: #3b82f6 !important; }
+  /* PAINEL ADM - VISUAL DISCRETO E FUNCIONAL */
+  #admin-link { color: #ffffff; font-size: 12px; margin-top: 60px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); z-index: 10; position: relative; }
+  #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; z-index: 9999; color: white; padding: 20px; overflow-y: auto; }
+  .adm-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #1e293b; color: white; margin-bottom: 30px; }
+  .adm-table td, .adm-table th { border: 1px solid #334155; padding: 12px; text-align: left; }
+  .adm-table th { background: #334155; color: #3b82f6; }
 </style>
 </head>
 <body>
 
-<header style="text-align:center; margin-bottom:20px;">
-  <h1 style="color:white; font-family:'Oswald'">Água Azul do Norte</h1>
+<div class="bg-glow"></div>
+
+<header>
+  <div class="badge">🗳 Enquete Eleitoral 2026</div>
+  <h1>Prefeitura de<br>Água Azul do Norte</h1>
 </header>
 
 <div class="card">
   <div id="section-vote" class="section active">
+    <h2 style="margin-bottom:20px; font-family:'Oswald'">Escolha seu candidato:</h2>
     <div id="candidates-list"></div>
-    <button class="vote-btn" onclick="submitVote()">VOTAR AGORA</button>
+    <button class="vote-btn" id="btn-vote" onclick="submitVote()">VOTAR AGORA →</button>
   </div>
+
+  <div id="section-thanks" class="section">
+    <h2 style="color:#0e9f6e; text-align:center">Voto Confirmado!</h2>
+    <button class="results-btn" onclick="showResults()">VER APURAÇÃO ATUAL →</button>
+  </div>
+
   <div id="section-results" class="section">
-    <h3 style="margin-bottom:15px">Resultado Parcial:</h3>
+    <h2 style="margin-bottom:20px; font-family:'Oswald'">Resultado Parcial:</h2>
     <div id="chart-bar"></div>
-    <button class="vote-btn" style="background:#0e9f6e" onclick="window.location.reload()">ATUALIZAR</button>
+    <button class="results-btn" style="background:#1a56db" onclick="window.location.reload()">ATUALIZAR VOTOS</button>
+  </div>
+
+  <div class="warning-box">
+    ⚠️ ATENÇÃO: Votos identificados fora do município de Água Azul do Norte serão ANULADOS no encerramento da enquete.
   </div>
 </div>
 
-<div id="admin-link" onclick="openAdmin()">Área Administrativa</div>
+<div id="admin-link" onclick="openAdmin()">Área do Administrador</div>
 
 <div id="admin-panel">
-  <h2 style="color:#3b82f6">PAINEL DE AUDITORIA</h2>
-  <button onclick="closeAdmin()" style="background:red; color:white; padding:10px; border:none; margin:10px 0; border-radius:5px;">SAIR DO PAINEL</button>
-  <div id="adm-content">Aguardando dados...</div>
+  <h2 style="font-family:'Oswald'; color:#3b82f6; margin-bottom: 10px;">AUDITORIA DE VOTOS</h2>
+  <button onclick="closeAdmin()" style="padding:10px 20px; margin-bottom: 20px; background:#ef4444; border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold;">FECHAR PAINEL</button>
+  <div id="adm-content">Carregando dados...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -82,70 +103,111 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
 var CANDIDATES = [
-  { id: "renan", name: "Renan Lopes" },
-  { id: "polaco", name: "Vereador Polaco" },
-  { id: "eraclito", name: "Eraclito Gesuino" },
-  { id: "romes", name: "Romes Lacerda" },
-  { id: "weverson", name: "Weverson WL hotel" },
-  { id: "yan", name: "Yan Massaro motos" },
-  { id: "joão", name: "João da Sec de Obras" }
+  { id: "renan",    name: "Renan Lopes",      color: "#1a56db" },
+  { id: "polaco",   name: "Vereador Polaco",   color: "#e3a008" },
+  { id: "eraclito", name: "Eraclito Gesuino",  color: "#0e9f6e" },
+  { id: "romes",    name: "Romes Lacerda",     color: "#d61f69" },
+  { id: "weverson", name: "Weverson WL hotel",  color: "#7e3af2" },
+  { id: "yan",      name: "Yan Massaro motos",     color: "#ff0000" },
+  { id: "joão",     name: "João da Sec de Obras",  color: "#3f83f8" }
 ];
 
 var selectedId = null;
 
+function getFingerprint() {
+    return (navigator.userAgent.length + navigator.language.length).toString() + (screen.width * screen.height);
+}
+
+function hasVoted() { return localStorage.getItem('voted_agua_azul_2026') === 'true'; }
+
 function init() {
+    renderCandidates();
+    if(hasVoted()) showResults();
+}
+
+function renderCandidates() {
   var html = "";
-  CANDIDATES.forEach(c => {
-    html += `<button class="cand-btn" id="btn-${c.id}" onclick="selectedId='${c.id}'; document.querySelectorAll('.cand-btn').forEach(b=>b.classList.remove('selected')); this.classList.add('selected')">${c.name}</button>`;
+  CANDIDATES.forEach(function(c) {
+    html += '<button class="cand-btn" id="btn-cand-'+c.id+'" style="--c:'+c.color+'" onclick="selectCandidate(\''+c.id+'\')"><div class="cand-dot"></div><span>'+c.name+'</span></button>';
   });
   document.getElementById("candidates-list").innerHTML = html;
-  if(localStorage.getItem('voted_2026')) showResults();
+}
+
+function selectCandidate(id) {
+  if (selectedId) document.getElementById("btn-cand-"+selectedId).classList.remove("selected");
+  selectedId = id;
+  document.getElementById("btn-cand-"+id).classList.add("selected");
 }
 
 async function submitVote() {
-  if(!selectedId) return alert("Selecione um candidato");
-  let city = "Não detectada";
-  try { const r = await fetch('https://ipapi.co/json/'); const d = await r.json(); city = d.city + " - " + d.region_code; } catch(e){}
+  if (hasVoted()) { alert("Você já votou!"); return; }
+  if (!selectedId) { alert("Selecione um candidato!"); return; }
+  var btn = document.getElementById("btn-vote");
+  btn.disabled = true; btn.textContent = "Validando...";
   
-  db.ref("votes/" + selectedId).transaction(c => (c||0)+1);
-  db.ref("voters/" + Date.now()).set({ city: city, cand: selectedId });
-  localStorage.setItem('voted_2026', 'true');
+  let city = "Não detectada";
+  try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      city = data.city + " - " + data.region_code;
+  } catch(e) {}
+
+  var fp = getFingerprint();
+  db.ref("voters/" + fp).set({ city: city, timestamp: Date.now() });
+  db.ref("votes/" + selectedId).transaction(function(c){ return (c||0)+1; });
+  localStorage.setItem('voted_agua_azul_2026', 'true');
   showResults();
 }
 
 function showResults() {
-  db.ref("votes").once("value", snap => {
+  db.ref("votes").once("value", function(snap) {
     var votes = snap.val() || {};
-    var total = Object.values(votes).reduce((a,b)=>a+b, 0);
+    var total = 0;
+    Object.values(votes).forEach(v => { total += v; });
     var html = "";
     CANDIDATES.forEach(c => {
       var v = votes[c.id] || 0;
-      var p = total > 0 ? ((v/total)*100).toFixed(1) : 0;
-      html += `<div class="bar-row"><b>${c.name}</b> (${v} votos)<div class="bar-track"><div class="bar-fill" style="width:${p}%"></div></div></div>`;
+      var pct = total > 0 ? ((v/total)*100).toFixed(1) : "0.0";
+      html += '<div class="bar-row"><div class="bar-info"><span>'+c.name+'</span><span>'+pct+'%</span></div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%; background:'+c.color+'"></div></div><small>'+v+' votos</small></div>';
     });
     document.getElementById("chart-bar").innerHTML = html;
     document.getElementById("section-vote").classList.remove("active");
+    document.getElementById("section-thanks").classList.remove("active");
     document.getElementById("section-results").classList.add("active");
   });
 }
 
 function openAdmin() {
-  if(prompt("Senha:") === "Art514671@") {
-    document.getElementById("admin-panel").style.display = "block";
-    db.ref().once("value", snap => {
-      var data = snap.val() || {};
-      var voters = data.voters || {};
-      var votes = data.votes || {};
-      var html = "<h4>Votos por Candidato:</h4><table class='adm-table'><tr><th>Candidato</th><th>Votos</th></tr>";
-      CANDIDATES.forEach(c => { html += `<tr><td>${c.name}</td><td>${votes[c.id]||0}</td></tr>`; });
-      html += "</table><h4>Localização de quem votou:</h4><table class='adm-table'><tr><th>Cidade</th></tr>";
-      Object.values(voters).forEach(v => { html += `<tr><td>${v.city || 'Desconhecido'}</td></tr>`; });
-      html += "</table>";
-      document.getElementById("adm-content").innerHTML = html;
-    });
-  }
+    if(prompt("Digite a senha:") === "Art514671@") {
+        document.getElementById("admin-panel").style.display = "block";
+        loadAdmData();
+    } else { alert("Senha incorreta!"); }
 }
+
 function closeAdmin() { document.getElementById("admin-panel").style.display = "none"; }
+
+function loadAdmData() {
+    db.ref().once("value", function(snap) {
+        var data = snap.val() || {};
+        var votes = data.votes || {};
+        var voters = data.voters || {};
+        
+        var html = "<h4>1. CONTAGEM DE VOTOS</h4><table class='adm-table'><tr><th>Candidato</th><th>Votos</th></tr>";
+        CANDIDATES.forEach(function(c){
+            html += "<tr><td>"+c.name+"</td><td><b>"+(votes[c.id]||0)+"</b></td></tr>";
+        });
+        html += "</table>";
+
+        html += "<h4>2. LOCALIZAÇÃO DOS VOTOS</h4><table class='adm-table'><tr><th>Aparelho</th><th>Cidade/Estado</th></tr>";
+        Object.keys(voters).forEach(function(k){
+            html += "<tr><td>ID_"+k.substring(0,5)+"</td><td>"+(voters[k].city || 'Desconhecido')+"</td></tr>";
+        });
+        html += "</table>";
+        
+        document.getElementById("adm-content").innerHTML = html;
+    });
+}
+
 init();
 </script>
 </body>
