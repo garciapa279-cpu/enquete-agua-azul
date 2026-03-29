@@ -6,22 +6,17 @@
 <title>Enquete Água Azul - Oficial</title>
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-  .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #3b82f6; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
   .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 90px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
+  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; background: #f8fafc; color: #333; width: 100%; text-align: left; }
   .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
   .vote-btn { width: 100%; padding: 18px; background: #1a56db; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
   .bar-row { margin-bottom: 18px; text-align: left; }
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
   .bar-fill { height: 100%; transition: width 1s; }
-  #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; }
+  #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; }
 </style>
 </head>
 <body>
-
-<div class="alert-bar">
-  <marquee><b>SISTEMA EM MANUTENÇÃO:</b> Restaurando todos os votos da região. Finalização em breve.</marquee>
-</div>
 
 <div class="card">
   <div id="vote-sec">
@@ -30,7 +25,7 @@
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
   <div id="res-sec" style="display:none">
-    <h3 style="color:#1a56db;">Resultado Parcial Auditado</h3>
+    <h3 style="color:#1a56db;">Resultado Parcial</h3>
     <div id="chart"></div>
     <button class="vote-btn" style="background:#0f172a" onclick="location.reload()">ATUALIZAR</button>
   </div>
@@ -39,11 +34,15 @@
 <p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Acesso</p>
 
 <div id="admin-panel">
-  <h2>PAINEL DE RECUPERAÇÃO FINAL</h2>
-  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none;">SAIR</button>
-  <div style="margin:20px 0; background:#1e293b; padding:20px; border-radius:10px;">
-    <p>Aperte o botão abaixo para ler os logs de votos (voters) e atualizar o placar (votes).</p>
-    <button onclick="superContagem()" style="background:#eab308; color:black; padding:20px; font-weight:bold; cursor:pointer; width:100%; border-radius:5px;">🔥🔥 SUPER RECONTAGEM GERAL 🔥🔥</button>
+  <h2 style="color:#ef4444">MANUTENÇÃO DE EMERGÊNCIA</h2>
+  <button onclick="location.reload()" style="background:white; color:black; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">VOLTAR PARA O SITE</button>
+  
+  <div style="background:#1e293b; padding:20px; border-radius:10px; text-align:left;">
+    <p><b>1º Passo:</b> Clique no botão vermelho para limpar o placar travado.</p>
+    <button onclick="limparPlacar()" style="background:#ef4444; color:white; padding:15px; width:100%; border:none; cursor:pointer; font-weight:bold;">1. ZERAR PLACAR VISUAL</button>
+    
+    <p style="margin-top:30px;"><b>2º Passo:</b> Clique no botão azul para ler os logs e somar tudo de novo.</p>
+    <button onclick="reconstruirTudo()" style="background:#3b82f6; color:white; padding:15px; width:100%; border:none; cursor:pointer; font-weight:bold;">2. RECONSTRUIR SOMA DOS LOGS</button>
   </div>
 </div>
 
@@ -112,29 +111,33 @@ function abrirAdm() {
   if(prompt("Senha:") === "Art514671@") document.getElementById("admin-panel").style.display="block";
 }
 
-function superContagem() {
+function limparPlacar() {
+    if(confirm("Isso vai zerar o placar visual para recontagem. Os logs NÃO serão apagados. Continuar?")) {
+        db.ref("votes").remove().then(() => alert("Placar zerado! Agora use o botão 2."));
+    }
+}
+
+function reconstruirTudo() {
     db.ref("voters").once("value", s => {
         const registros = s.val() || {};
-        // Zeramos tudo e mantemos o Eraclito com a base 71
-        let novaContagem = { cicero:0, renan:0, polaco:0, eraclito:71, romes:0, weverson:0, yan:0, joão:0 };
+        // Base oficial + contagem do log
+        let novaSoma = { cicero:0, renan:0, polaco:0, eraclito:71, romes:0, weverson:0, yan:0, joão:0 };
 
         Object.values(registros).forEach(v => {
-            let canId = String(v.can).toLowerCase().trim();
-            // Tenta achar o ID mesmo se estiver escrito de forma estranha no banco
-            if (novaContagem.hasOwnProperty(canId)) {
-                novaContagem[canId]++;
-            } else if (canId === "joao") {
-                novaContagem["joão"]++;
+            // Limpa o ID do candidato para garantir que a soma aconteça
+            let idLog = String(v.can).toLowerCase().trim();
+            // Correção para o acento no "João" se estiver salvo errado
+            if(idLog === "joao") idLog = "joão";
+            
+            if (novaSoma.hasOwnProperty(idLog)) {
+                novaSoma[idLog]++;
             }
         });
 
-        if(confirm("Deseja forçar a recontagem agora?")) {
-            // Aplica a nova contagem no banco de dados
-            db.ref("votes").set(novaContagem).then(() => {
-                alert("Placar TOTALMENTE RECONSTRUIDO!");
-                location.reload();
-            });
-        }
+        db.ref("votes").set(novaSoma).then(() => {
+            alert("Sucesso! Placar reconstruído com todos os votos.");
+            location.reload();
+        });
     });
 }
 init();
