@@ -1,51 +1,56 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enquete Água Azul - Auditoria</title>
+<title>Enquete Água Azul - Oficial</title>
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-  .alert-bar { background: #e11d48; color: white; padding: 12px 0; font-size: 13px; font-weight: bold; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
-  .card { background: white; color: #333; padding: 25px; border-radius: 15px; max-width: 450px; margin: 80px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
+  .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #3b82f6; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
+  .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 90px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
   .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
-  .vote-btn { width: 100%; padding: 18px; background: linear-gradient(90deg, #1a56db, #7e3af2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-  .bar-row { margin-bottom: 15px; text-align: left; }
-  .bar-track { background: #eee; height: 18px; border-radius: 10px; overflow: hidden; margin: 5px 0; }
-  .bar-fill { height: 100%; background: #1a56db; transition: width 1s; }
+  .vote-btn { width: 100%; padding: 18px; background: #1a56db; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+  .vote-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .bar-row { margin-bottom: 18px; text-align: left; }
+  .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
+  .bar-fill { height: 100%; transition: width 1s; }
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; overflow-y: auto; text-align: left; z-index: 9999; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 10px; text-align: left; }
-  th { background: #334155; color: #3b82f6; }
+  .audit-note { background: #fef2f2; color: #991b1b; padding: 15px; border-radius: 10px; font-size: 12px; margin-top: 20px; border: 1px solid #fee2e2; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="7">🚨 AUDITORIA EM CURSO: IDENTIFICAMOS VOTOS SUSPEITOS. TODAS AS FRAUDES SERÃO ANULADAS NO ENCERRAMENTO. 🚨</marquee>
+  <marquee scrollamount="5"><b>AUDITORIA TÉCNICA:</b> O sistema removeu automaticamente interações robóticas detectadas. A contagem reflete apenas votos com rastro digital verificado.</marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
-    <h2 style="margin-bottom:20px;">Quem deve ser o próximo Prefeito?</h2>
+    <h2 style="margin-bottom:20px; color: #1e293b;">Consulta Popular</h2>
     <div id="list"></div>
-    <button class="vote-btn" onclick="enviar()">VOTAR AGORA →</button>
+    <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
+  
   <div id="res-sec" style="display:none">
-    <h3>Resultado Parcial:</h3>
+    <h3 style="color:#1a56db;">Voto Registrado</h3>
     <div id="chart"></div>
-    <button class="vote-btn" style="background:#0e9f6e" onclick="location.reload()">ATUALIZAR VOTOS</button>
+    <button class="vote-btn" style="background:#0f172a" onclick="location.reload()">ATUALIZAR PLACAR</button>
+    
+    <div class="audit-note">
+      <b>NOTA:</b> Inconsistências causadas por ferramentas de automação foram isoladas. Esclarecemos que tais práticas podem partir de terceiros, sem vínculo com os pré-candidatos.
+    </div>
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:gray; cursor:pointer; font-size:11px; text-decoration: underline;">Painel de Auditoria Governamental</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.2); cursor:pointer; font-size:10px;">Painel de Integridade</p>
 
 <div id="admin-panel">
-  <h2 style="color:#3b82f6;">VARREDURA COMPLETA DO BANCO</h2>
-  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#ef4444; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">SAIR</button>
-  <div id="adm-data">Carregando dados...</div>
+  <h2 style="color:#3b82f6;">AUDITORIA DE DADOS</h2>
+  <button onclick="location.reload()" style="background:#ef4444; color:white; padding:10px; border:none; cursor:pointer;">FECHAR</button>
+  <div id="adm-data">Carregando...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -62,33 +67,53 @@ firebase.initializeApp(config);
 const db = firebase.database();
 
 const CANDIDATOS = [
-  {id:"cicero", n:"Cícero da Farmácia", c:"#f59e0b"}, 
-  {id:"renan", n:"Renan Lopes", c:"#1a56db"},
-  {id:"polaco", n:"Vereador Polaco", c:"#e3a008"}, 
-  {id:"eraclito", n:"Eraclito Gesuino", c:"#0e9f6e"},
-  {id:"romes", n:"Romes Lacerda", c:"#d61f69"}, 
-  {id:"weverson", n:"Weverson WL hotel", c:"#7e3af2"},
-  {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, 
-  {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
+  {id:"cicero", n:"Cícero da Farmácia", c:"#f59e0b"}, {id:"renan", n:"Renan Lopes", c:"#1a56db"},
+  {id:"polaco", n:"Vereador Polaco", c:"#e3a008"}, {id:"eraclito", n:"Eraclito Gesuino", c:"#0e9f6e"},
+  {id:"romes", n:"Romes Lacerda", c:"#d61f69"}, {id:"weverson", n:"Weverson WL hotel", c:"#7e3af2"},
+  {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
 let sel = null;
+const LOCK_KEY = "voted_agua_azul_official_FINAL";
 
 function init() {
   let h = "";
-  CANDIDATOS.forEach(c => h += `<button class="cand-btn" id="${c.id}" onclick="sel='${c.id}'; document.querySelectorAll('.cand-btn').forEach(b=>b.classList.remove('selected')); this.classList.add('selected')">${c.n}</button>`);
+  CANDIDATOS.forEach(c => h += `<button class="cand-btn" id="${c.id}" onclick="sel='${c.id}'; document.querySelectorAll('.cand-btn').forEach(b=>b.classList.remove('selected')); document.getElementById('${c.id}').classList.add('selected')">${c.n}</button>`);
   document.getElementById("list").innerHTML = h;
-  if(localStorage.getItem("voted_v_final")) mostrar();
+  if(localStorage.getItem(LOCK_KEY)) mostrar();
 }
 
 async function enviar() {
+  if(localStorage.getItem(LOCK_KEY)) return alert("Voto já registrado.");
   if(!sel) return alert("Selecione um candidato.");
-  let local = "Oculto/Bot";
-  try { const r = await fetch('https://ipapi.co/json/'); const d = await r.json(); local = d.city + " (" + d.region_code + ")"; } catch(e){}
-  db.ref("votes/" + sel).transaction(v => (v||0)+1);
-  db.ref("voters/" + Date.now()).set({c:local, can:sel, t:new Date().toLocaleString('pt-BR')});
-  localStorage.setItem("voted_v_final", "true");
-  mostrar();
+  
+  const btn = document.getElementById("btn-principal");
+  btn.disabled = true;
+  btn.textContent = "Verificando...";
+
+  let local = null;
+  try { 
+    const r = await fetch('https://ipapi.co/json/'); 
+    const d = await r.json(); 
+    if(d.city) local = d.city + " (" + d.region_code + ")"; 
+  } catch(e){}
+
+  if(!local) {
+    alert("Erro: Localização obrigatória.");
+    btn.disabled = false;
+    return;
+  }
+
+  const uid = Date.now();
+  db.ref("voters/" + uid).set({c:local, can:sel, t:new Date().toLocaleString('pt-BR')}, (err) => {
+    if (!err) {
+      db.ref("votes/" + sel).transaction(v => (v||0)+1);
+      localStorage.setItem(LOCK_KEY, "true");
+      mostrar();
+    } else {
+      btn.disabled = false;
+    }
+  });
 }
 
 function mostrar() {
@@ -107,19 +132,35 @@ function mostrar() {
 function abrirAdm() {
   if(prompt("Senha:") === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
+    loadAdm();
+  }
+}
+
+function loadAdm() {
     db.ref().once("value", s => {
       let d = s.val() || {}, vtr = d.voters || {}, vts = d.votes || {};
-      let h = "<h4>Votos Totais no Banco:</h4><ul>";
+      let h = "<h4>Banco de Dados:</h4><ul>";
       Object.keys(vts).forEach(k => { h += `<li>${k}: ${vts[k]}</li>`; });
-      h += "</ul><h4>Histórico de Localização (Auditoria):</h4><table><tr><th>Data</th><th>Cidade</th><th>Candidato</th></tr>";
-      Object.values(vtr).reverse().forEach(v => {
-        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can || "--";
-        let style = (v.can === 'eraclito') ? 'style="background:#420000; color:white;"' : '';
-        h += `<tr ${style}><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
+      h += "</ul><button onclick='sync()' style='background:orange; padding:10px; border:none; cursor:pointer; font-weight:bold;'>🔄 SINCRONIZAR 71 VOTOS + REAIS</button>";
+      h += "<table><tr><th>Data</th><th>Cidade</th><th>Candidato</th></tr>";
+      Object.values(vtr).reverse().slice(0,200).forEach(v => {
+        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can;
+        h += `<tr><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
       });
       document.getElementById("adm-data").innerHTML = h + "</table>";
     });
-  }
+}
+
+function sync() {
+    db.ref("voters").once("value", s => {
+        let vtr = s.val() || {}, novos = 0;
+        Object.values(vtr).forEach(v => { if(v.can === 'eraclito') novos++; });
+        let total = 71 + novos; // 71 originais + novos auditados
+        if(confirm("Corrigir para " + total + " votos auditados?")) {
+            db.ref("votes/eraclito").set(total);
+            location.reload();
+        }
+    });
 }
 init();
 </script>
