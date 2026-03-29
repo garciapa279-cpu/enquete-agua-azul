@@ -15,19 +15,17 @@
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
   .bar-fill { height: 100%; transition: width 1s; }
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; overflow-y: auto; text-align: left; z-index: 9999; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
-  th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>📢 COMUNICADO:</b> Placar sendo restaurado. | <b>⏳ ENCERRAMENTO:</b> Amanhã (Segunda) às 19:00.</marquee>
+  <marquee scrollamount="5"><b>📢 ATENÇÃO:</b> Sincronizando todos os votos da região Sul do Pará. Encerramento amanhã às 19:00.</marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
-    <h2 style="color:#1e293b; margin-top:0;">Consulta Popular</h2>
+    <h2 style="color:#1e293b;">Consulta Popular</h2>
     <div id="list"></div>
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
@@ -38,16 +36,14 @@
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.02); cursor:pointer; font-size:10px;">Acesso</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.02); cursor:pointer;">Acesso</p>
 
 <div id="admin-panel">
-  <h2 style="color:#fbbf24">🚨 MODO DE RECUPERAÇÃO TOTAL</h2>
-  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none; border-radius:5px;">SAIR</button>
+  <h2 style="color:#fbbf24">PAINEL DE RECUPERAÇÃO FORÇADA</h2>
+  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none; border-radius:5px;">FECHAR</button>
   <div style="margin:20px 0; background:#1e293b; padding:15px; border-radius:10px;">
-    <p>Este botão vai ler todos os registros do banco e devolver para o placar, independente da cidade.</p>
-    <button onclick="restaurarTudo()" style="background:#3b82f6; color:white; padding:20px; font-weight:bold; cursor:pointer; border:none; border-radius:5px; width:100%;">🔄 RESTAURAR TODOS OS VOTOS AGORA</button>
+    <button onclick="recuperarGeral()" style="background:#22c55e; color:white; padding:20px; font-weight:bold; cursor:pointer; border:none; border-radius:5px; width:100%;">🚀 RECONTAGEM TOTAL (TODOS OS CANDIDATOS)</button>
   </div>
-  <div id="adm-data"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -87,8 +83,8 @@ function selecionar(id) {
 }
 
 async function enviar() {
-  if(localStorage.getItem(LOCK_KEY)) return alert("Voto já registrado.");
-  if(!sel) return alert("Selecione um candidato.");
+  if(localStorage.getItem(LOCK_KEY)) return alert("Já votou.");
+  if(!sel) return alert("Selecione.");
   const btn = document.getElementById("btn-principal");
   btn.disabled = true;
   try { 
@@ -116,33 +112,27 @@ function mostrar() {
 }
 
 function abrirAdm() {
-  if(prompt("Senha Master:") === "Art514671@") {
-    document.getElementById("admin-panel").style.display="block";
-    loadAdm();
-  }
+  if(prompt("Senha:") === "Art514671@") document.getElementById("admin-panel").style.display="block";
 }
 
-function loadAdm() {
-    db.ref("voters").once("value", s => {
-      let vtr = s.val() || {}, h = "<table><tr><th>Data</th><th>Cidade</th><th>Candidato</th></tr>";
-      Object.values(vtr).reverse().slice(0,100).forEach(v => {
-        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can;
-        h += `<tr><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
-      });
-      document.getElementById("adm-data").innerHTML = h + "</table>";
-    });
-}
-
-function restaurarTudo() {
+function recuperarGeral() {
     db.ref("voters").once("value", s => {
         let vtr = s.val() || {};
-        let contagem = { cicero:0, renan:0, polaco:0, eraclito:71, romes:0, weverson:0, yan:0, joão:0 };
+        // Começamos com a base de 71 para o Eraclito e 0 para os outros
+        let contagemTotal = { cicero:0, renan:0, polaco:0, eraclito:71, romes:0, weverson:0, yan:0, joão:0 };
+
+        // Percorre CADA voto do banco e soma ao candidato correto
         Object.values(vtr).forEach(v => {
-            if (contagem.hasOwnProperty(v.can)) contagem[v.can]++;
+            if (contagemTotal.hasOwnProperty(v.can)) {
+                contagemTotal[v.can]++;
+            }
         });
-        if(confirm("Confirmar restauração? Todos os votos (incluindo cidades vizinhas) voltarão ao placar.")) {
-            Object.keys(contagem).forEach(id => { db.ref("votes/" + id).set(contagem[id]); });
-            alert("Sucesso! Todos os votos foram devolvidos ao placar.");
+
+        if(confirm("Confirmar a recontagem de TODOS os votos do banco?")) {
+            Object.keys(contagemTotal).forEach(id => {
+                db.ref("votes/" + id).set(contagemTotal[id]);
+            });
+            alert("Placar Geral Restaurado!");
             location.reload();
         }
     });
