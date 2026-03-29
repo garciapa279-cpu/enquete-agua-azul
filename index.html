@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enquete Água Azul - Regional</title>
+<title>Enquete Água Azul - Oficial</title>
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
   .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #3b82f6; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
@@ -22,29 +22,35 @@
 <body>
 
 <div class="alert-bar">
-  <marquee><b>SISTEMA DE AUDITORIA REGIONAL:</b> Apenas votos de Água Azul e cidades vizinhas são validados.</marquee>
+  <marquee scrollamount="5">
+    <b>📢 AVISO IMPORTANTE:</b> Hoje às <b>19:00</b> será realizada a <b>Auditoria Técnica</b> para remoção de votos inválidos. 
+    | <b>⏳ ENCERRAMENTO:</b> A enquete termina amanhã (Segunda) às <b>19:00</b>. 
+    | <b>📍 REGRA:</b> Somente votos identificados em <b>Água Azul do Norte</b> são validados.
+  </marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
-    <h2>Consulta Popular</h2>
+    <h2 style="color:#1e293b; margin-top:0;">Consulta Popular</h2>
+    <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Selecione seu pré-candidato:</p>
     <div id="list"></div>
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
   <div id="res-sec" style="display:none">
     <h3 style="color:#1a56db;">Resultado Parcial Auditado</h3>
     <div id="chart"></div>
+    <p style="color:#64748b; font-size:12px;">Próxima auditoria hoje às 19:00</p>
     <button class="vote-btn" style="background:#0f172a" onclick="location.reload()">ATUALIZAR PLACAR</button>
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Painel Master</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.02); cursor:pointer; font-size:8px;">Acesso</p>
 
 <div id="admin-panel">
-  <h2>CONTROLE DE AUDITORIA Master</h2>
-  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none; border-radius:5px;">FECHAR</button>
+  <h2>PAINEL DE CONTROLE Master</h2>
+  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none; border-radius:5px;">SAIR</button>
   <div style="margin:20px 0;">
-    <button onclick="sync()" style="background:green; color:white; padding:15px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🔄 SINCRONIZAR PLACAR (71 + REAIS REGIONAIS)</button>
+    <button onclick="sync()" style="background:green; color:white; padding:15px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🔄 EXECUTAR AUDITORIA (SYNC 71+REAIS)</button>
   </div>
   <div id="adm-data"></div>
 </div>
@@ -69,14 +75,14 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-const CIDADES_PERMITIDAS = [
+const CIDADES_TECNICAS = [
   "Xinguara", "Agua Azul do Norte", "Água Azul do Norte", "Tucumã", "Tucuma", 
   "Ourilândia do Norte", "Ourilandia do Norte", "São Felix do Xingu", "Redenção", 
   "Redencao", "Rio Maria", "Sapucaia", "Sapucai", "Canaã dos Carajás", "Canaa dos Carajas"
 ];
 
 let sel = null;
-const LOCK_KEY = "VOTO_REGIONAL_FIXO";
+const LOCK_KEY = "VOTO_OFICIAL_AGUA_AZUL_V2";
 
 function init() {
   let h = "";
@@ -97,18 +103,17 @@ async function enviar() {
   
   const btn = document.getElementById("btn-principal");
   btn.disabled = true;
-  btn.textContent = "Validando localização...";
+  btn.textContent = "Auditando região...";
 
   try { 
     const r = await fetch('https://ipapi.co/json/'); 
     const d = await r.json(); 
     const cidadeDetectada = d.city || "";
     
-    // VALIDAÇÃO DE REGIAO
-    const ehValida = CIDADES_PERMITIDAS.some(c => cidadeDetectada.toLowerCase().includes(c.toLowerCase()));
+    const ehValida = CIDADES_TECNICAS.some(c => cidadeDetectada.toLowerCase().includes(c.toLowerCase()));
     
     if(!ehValida) {
-      alert("Voto não permitido: Esta enquete é restrita aos moradores da região Sul do Pará.");
+      alert("Acesso Negado: Voto identificado fora de Água Azul do Norte.");
       btn.disabled = false;
       btn.textContent = "CONFIRMAR VOTO";
       return;
@@ -117,7 +122,7 @@ async function enviar() {
     const ip = d.ip.replace(/\./g, '_');
     db.ref("ips/" + ip).once("value", s => {
       if(s.exists()) {
-        alert("Este dispositivo já votou.");
+        alert("Atenção: Este dispositivo já registrou um voto.");
         localStorage.setItem(LOCK_KEY, "true");
         return mostrar();
       }
@@ -132,7 +137,7 @@ async function enviar() {
       localStorage.setItem(LOCK_KEY, "true");
       mostrar();
     });
-  } catch(e){ alert("Erro de conexão. Tente novamente."); btn.disabled = false; }
+  } catch(e){ alert("Erro de conexão."); btn.disabled = false; }
 }
 
 function mostrar() {
@@ -149,7 +154,7 @@ function mostrar() {
 }
 
 function abrirAdm() {
-  if(prompt("Senha Master:") === "Art514671@") {
+  if(prompt("Senha:") === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
     loadAdm();
   }
@@ -159,7 +164,7 @@ function loadAdm() {
     db.ref("voters").once("value", s => {
       let vtr = s.val() || {};
       let h = "<table><tr><th>Data</th><th>Cidade</th><th>Candidato</th></tr>";
-      Object.values(vtr).reverse().slice(0,200).forEach(v => {
+      Object.values(vtr).reverse().slice(0,300).forEach(v => {
         let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can;
         h += `<tr><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
       });
@@ -174,15 +179,15 @@ function sync() {
 
         Object.values(vtr).forEach(v => {
             let cid = (v.c || "").split(" (")[0];
-            let ehCidadeReal = CIDADES_PERMITIDAS.some(c => cid.toLowerCase().includes(c.toLowerCase()));
+            let ehCidadeReal = CIDADES_TECNICAS.some(c => cid.toLowerCase().includes(c.toLowerCase()));
             if (ehCidadeReal) {
                 if (contagemAuditada.hasOwnProperty(v.can)) contagemAuditada[v.can]++;
             }
         });
 
-        if(confirm("Deseja aplicar o FILTRO REGIONAL em todos os candidatos agora?")) {
+        if(confirm("Deseja executar a auditoria agora e remover votos de fora da região?")) {
             Object.keys(contagemAuditada).forEach(id => { db.ref("votes/" + id).set(contagemAuditada[id]); });
-            alert("Placar limpo e sincronizado!");
+            alert("Auditoria realizada com sucesso!");
             location.reload();
         }
     });
