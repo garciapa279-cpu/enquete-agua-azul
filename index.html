@@ -7,7 +7,7 @@
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
   .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #3b82f6; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
-  .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 90px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 90px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 300px; }
   .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
   .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
   .vote-btn { width: 100%; padding: 18px; background: #1a56db; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
@@ -22,13 +22,15 @@
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>📢 COMUNICADO:</b> Auditoria Geral em andamento. | <b>⏳ ENCERRAMENTO:</b> Segunda-feira às 19:00.</marquee>
+  <marquee scrollamount="5"><b>📢 COMUNICADO:</b> Auditoria Geral em andamento para validar votos reais. | <b>⏳ ENCERRAMENTO:</b> Segunda-feira às 19:00.</marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
-    <h2 style="color:#1e293b;">Consulta Popular</h2>
-    <div id="list"></div>
+    <h2 style="color:#1e293b; margin-top:0;">Consulta Popular</h2>
+    <p style="color:#64748b; font-size:14px; margin-bottom:15px;">Selecione seu pré-candidato:</p>
+    <div id="list">
+        </div>
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
   <div id="res-sec" style="display:none">
@@ -38,15 +40,104 @@
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.02); cursor:pointer;">Acesso</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.02); cursor:pointer; font-size:10px;">Acesso</p>
 
 <div id="admin-panel">
-  <h2>RESTAURAÇÃO DE VOTOS</h2>
-  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none;">FECHAR</button>
+  <h2>PAINEL DE RESTAURAÇÃO Master</h2>
+  <button onclick="location.reload()" style="background:red; color:white; padding:10px; border:none; border-radius:5px;">SAIR</button>
   <div style="margin:20px 0;">
-    <button onclick="restaurarTudo()" style="background:blue; color:white; padding:15px; font-weight:bold; cursor:pointer;">🔄 RESTAURAR TODOS OS VOTOS AGORA</button>
+    <button onclick="restaurarTudo()" style="background:blue; color:white; padding:15px; font-weight:bold; cursor:pointer; border:none; border-radius:5px;">🔄 RESTAURAR TODOS OS VOTOS (Sem Filtro)</button>
   </div>
   <div id="adm-data"></div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+const config = {
+  apiKey: "AIzaSyC7WxD8TLuaDwwUnsGmxfrYIHRyKtK507s",
+  authDomain: "enquete-agua-azul.firebaseapp.com",
+  databaseURL: "https://enquete-agua-azul-default-rtdb.firebaseio.com",
+  projectId: "enquete-agua-azul"
+};
+firebase.initializeApp(config);
+const db = firebase.database();
+
+const CANDIDATOS = [
+  {id:"cicero", n:"Cícero da Farmácia", c:"#f59e0b"}, {id:"renan", n:"Renan Lopes", c:"#1a56db"},
+  {id:"polaco", n:"Vereador Polaco", c:"#e3a008"}, {id:"eraclito", n:"Eraclito Gesuino", c:"#0e9f6e"},
+  {id:"romes", n:"Romes Lacerda", c:"#d61f69"}, {id:"weverson", n:"Weverson WL hotel", c:"#7e3af2"},
+  {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
+];
+
+let sel = null;
+const LOCK_KEY = "VOTO_REGIONAL_FIXO";
+
+function init() {
+  let h = "";
+  CANDIDATOS.forEach(c => {
+    h += `<button class="cand-btn" id="${c.id}" onclick="selecionar('${c.id}')">${c.n}</button>`;
+  });
+  document.getElementById("list").innerHTML = h;
+  if(localStorage.getItem(LOCK_KEY)) mostrar();
+}
+
+function selecionar(id) {
+  sel = id;
+  document.querySelectorAll('.cand-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById(id).classList.add('selected');
+}
+
+async function enviar() {
+  if(localStorage.getItem(LOCK_KEY)) return alert("Voto já registrado.");
+  if(!sel) return alert("Selecione um candidato.");
+  const btn = document.getElementById("btn-principal");
+  btn.disabled = true;
+  try { 
+    const r = await fetch('https://ipapi.co/json/'); 
+    const d = await r.json(); 
+    const ip = d.ip.replace(/\./g, '_');
+    const infoLocal = (d.city || "Região") + " (" + (d.region_code || "PA") + ")";
+    db.ref("voters/" + Date.now()).set({c:infoLocal, can:sel, t:new Date().toLocaleString('pt-BR')});
+    db.ref("votes/" + sel).transaction(v => (v||0)+1);
+    localStorage.setItem(LOCK_KEY, "true");
+    mostrar();
+  } catch(e){ btn.disabled = false; alert("Erro de rede. Tente novamente."); }
+}
+
+function mostrar() {
+  db.ref("votes").on("value", s => {
+    let vts = s.val() || {}, tot = Object.values(vts).reduce((a,b)=>a+b,0), h = "";
+    CANDIDATOS.forEach(c => {
+      let v = vts[c.id]||0, p = tot>0?((v/tot)*100).toFixed(1):0;
+      h += `<div class="bar-row"><b>${c.n} (${v}v)</b><div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div></div>`;
+    });
+    document.getElementById("chart").innerHTML = h;
+    document.getElementById("vote-sec").style.display="none";
+    document.getElementById("res-sec").style.display="block";
+  });
+}
+
+function abrirAdm() {
+  if(prompt("Senha Master:") === "Art514671@") {
+    document.getElementById("admin-panel").style.display="block";
+    loadAdm();
+  }
+}
+
+function loadAdm() {
+    db.ref("voters").once("value", s => {
+      let vtr = s.val() || {}, h = "<table><tr><th>Data</th><th>Local</th><th>Voto</th></tr>";
+      Object.values(vtr).reverse().slice(0,100).forEach(v => {
+        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can;
+        h += `<tr><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
+      });
+      document.getElementById("adm-data").innerHTML = h + "</table>";
+    });
+}
+
+function restaurarTudo() {
+    db.ref("voters").once("value", s => {
+        let vtr = s.val() || {};
+        let contagem = { cicero:
