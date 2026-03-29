@@ -1,14 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enquete Água Azul - Auditoria Ativa</title>
+<title>Enquete Água Azul - Auditoria</title>
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
   .alert-bar { background: #e11d48; color: white; padding: 12px 0; font-size: 13px; font-weight: bold; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
   .card { background: white; color: #333; padding: 25px; border-radius: 15px; max-width: 450px; margin: 80px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 16px; text-align: left; background: #f8fafc; color: #333; transition: 0.2s; }
+  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
   .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
   .vote-btn { width: 100%; padding: 18px; background: linear-gradient(90deg, #1a56db, #7e3af2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
   .bar-row { margin-bottom: 15px; text-align: left; }
@@ -18,13 +19,12 @@
   table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 10px; text-align: left; }
   th { background: #334155; color: #3b82f6; }
-  .row-suspect { color: #ff4444 !important; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="7">🚨 AUDITORIA EM CURSO: IDENTIFICAMOS VOTOS IRREGULARES DE FORA DO MUNICÍPIO. TODAS AS FRAUDES SERÃO ANULADAS NO ENCERRAMENTO. 🚨</marquee>
+  <marquee scrollamount="7">🚨 AUDITORIA EM CURSO: IDENTIFICAMOS VOTOS SUSPEITOS. TODAS AS FRAUDES SERÃO ANULADAS NO ENCERRAMENTO. 🚨</marquee>
 </div>
 
 <div class="card">
@@ -43,9 +43,9 @@
 <p onclick="abrirAdm()" style="margin-top:50px; color:gray; cursor:pointer; font-size:11px; text-decoration: underline;">Painel de Auditoria Governamental</p>
 
 <div id="admin-panel">
-  <h2 style="color:#3b82f6;">LOG COMPLETO DE AUDITORIA</h2>
-  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#ef4444; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">VOLTAR</button>
-  <div id="adm-data">Carregando todos os registros do banco...</div>
+  <h2 style="color:#3b82f6;">VARREDURA COMPLETA DO BANCO</h2>
+  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#ef4444; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">SAIR</button>
+  <div id="adm-data">Carregando dados...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -76,30 +76,18 @@ let sel = null;
 
 function init() {
   let h = "";
-  CANDIDATOS.forEach(c => h += `<button class="cand-btn" id="${c.id}" onclick="selecionar('${c.id}')">${c.n}</button>`);
+  CANDIDATOS.forEach(c => h += `<button class="cand-btn" id="${c.id}" onclick="sel='${c.id}'; document.querySelectorAll('.cand-btn').forEach(b=>b.classList.remove('selected')); this.classList.add('selected')">${c.n}</button>`);
   document.getElementById("list").innerHTML = h;
-  if(localStorage.getItem("voted_final_v1")) mostrar();
-}
-
-function selecionar(id) {
-  sel = id;
-  document.querySelectorAll('.cand-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById(id).classList.add('selected');
+  if(localStorage.getItem("voted_v_final")) mostrar();
 }
 
 async function enviar() {
-  if(!sel) return alert("Por favor, selecione um candidato.");
-  let local = "Cidade não identificada";
-  try { 
-    const r = await fetch('https://ipapi.co/json/'); 
-    const d = await r.json(); 
-    local = d.city + " (" + d.region_code + ")"; 
-  } catch(e){}
-
-  const uid = Date.now();
+  if(!sel) return alert("Selecione um candidato.");
+  let local = "Oculto/Bot";
+  try { const r = await fetch('https://ipapi.co/json/'); const d = await r.json(); local = d.city + " (" + d.region_code + ")"; } catch(e){}
   db.ref("votes/" + sel).transaction(v => (v||0)+1);
-  db.ref("voters/" + uid).set({c:local, can:sel, t:new Date().toLocaleString('pt-BR')});
-  localStorage.setItem("voted_final_v1", "true");
+  db.ref("voters/" + Date.now()).set({c:local, can:sel, t:new Date().toLocaleString('pt-BR')});
+  localStorage.setItem("voted_v_final", "true");
   mostrar();
 }
 
@@ -108,11 +96,7 @@ function mostrar() {
     let vts = s.val() || {}, tot = Object.values(vts).reduce((a,b)=>a+b,0), h = "";
     CANDIDATOS.forEach(c => {
       let v = vts[c.id]||0, p = tot>0?((v/tot)*100).toFixed(1):0;
-      h += `<div class="bar-row">
-              <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;"><span>${c.n}</span><span>${p}%</span></div>
-              <div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div>
-              <small style="color:#666">${v} votos</small>
-            </div>`;
+      h += `<div class="bar-row"><b>${c.n} (${v}v)</b><div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div></div>`;
     });
     document.getElementById("chart").innerHTML = h;
     document.getElementById("vote-sec").style.display="none";
@@ -121,27 +105,22 @@ function mostrar() {
 }
 
 function abrirAdm() {
-  if(prompt("Senha de Auditoria:") === "Art514671@") {
+  if(prompt("Senha:") === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
-    db.ref("voters").once("value", s => {
-      let vtr = s.val() || {};
-      let h = "<table><tr><th>Data/Hora</th><th>Cidade (Estado)</th><th>Candidato Votado</th></tr>";
-      
-      // Converte para array e inverte para ver os mais recentes no topo
-      let logs = Object.values(vtr).reverse();
-      
-      logs.forEach(v => {
-        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || "---";
-        // SE FOR O ERACLITO, PINTA DE VERMELHO
-        let classeFraude = (v.can === 'eraclito') ? 'class="row-suspect"' : '';
-        
-        h += `<tr ${classeFraude}><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
+    db.ref().once("value", s => {
+      let d = s.val() || {}, vtr = d.voters || {}, vts = d.votes || {};
+      let h = "<h4>Votos Totais no Banco:</h4><ul>";
+      Object.keys(vts).forEach(k => { h += `<li>${k}: ${vts[k]}</li>`; });
+      h += "</ul><h4>Histórico de Localização (Auditoria):</h4><table><tr><th>Data</th><th>Cidade</th><th>Candidato</th></tr>";
+      Object.values(vtr).reverse().forEach(v => {
+        let n = CANDIDATOS.find(c=>c.id===v.can)?.n || v.can || "--";
+        let style = (v.can === 'eraclito') ? 'style="background:#420000; color:white;"' : '';
+        h += `<tr ${style}><td>${v.t||''}</td><td>${v.c||''}</td><td>${n}</td></tr>`;
       });
       document.getElementById("adm-data").innerHTML = h + "</table>";
     });
   }
 }
-
 init();
 </script>
 </body>
