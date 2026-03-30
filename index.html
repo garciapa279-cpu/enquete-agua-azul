@@ -15,11 +15,12 @@
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
   .bar-fill { height: 100%; transition: width 1s; }
   
-  /* Seção de Alerta Suave */
-  .audit-box { margin-top: 20px; padding: 15px; background: #f1f5f9; border-radius: 10px; color: #475569; font-size: 12px; line-height: 1.4; }
-  .audit-tag { background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 5px; display: inline-block; }
+  /* Seção de Auditoria com Provas Imagem */
+  .audit-box { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; color: #475569; font-size: 12px; line-height: 1.4; border: 1px solid #e2e8f0; text-align: left; }
+  .audit-tag { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: inline-block; }
+  .proof-link { color: #1a56db; text-decoration: underline; cursor: pointer; font-weight: bold; }
 
-  /* Painel ADM (Mantido) */
+  /* Painel ADM */
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; text-align: left; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
@@ -29,7 +30,7 @@
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>🛡️ SISTEMA MONITORADO:</b> Auditoria automática em andamento para garantir a integridade dos votos. Encerramento hoje às 19:00.</marquee>
+  <marquee scrollamount="5"><b>🛡️ AUDITORIA EM CURSO:</b> Votos identificados como robôs estão sendo removidos para garantir a lisura da enquete.</marquee>
 </div>
 
 <div class="card">
@@ -39,19 +40,34 @@
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
 
     <div class="audit-box">
-        <span class="audit-tag">TECNOLOGIA ANTI-FRAUDE</span><br>
-        Informamos que votos detectados fora do padrão de comportamento humano ou de localizações distantes são automaticamente analisados e isolados pela nossa equipe de auditoria para preservar a transparência desta consulta.
+        <span class="audit-tag">VOTOS DE ROBÔS REMOVIDOS</span><br>
+        Nossa tecnologia detectou ações automatizadas para inflar votos. Para proteger a verdade, esses registros foram auditados e excluídos.
+        <br><br>
+        <b>PROVAS DA AUDITORIA:</b><br>
+        <span class="proof-link" onclick="window.open('https://i.ibb.co/6R0y9fV/Captura-votos-de-robo-eraclito-PALMAS.png')">Visualizar Log 01</span> | 
+        <span class="proof-link" onclick="window.open('https://i.ibb.co/m0fH4Ym/ROBOERACLITO-NOVAMENTEb-ELEM.png')">Visualizar Log 02</span>
     </div>
   </div>
 
   <div id="res-sec" style="display:none">
-    <h3 style="color:#1a56db;">Resultado Parcial Auditado</h3>
+    <h3 style="color:#1a56db; margin-bottom:5px;">Placar Auditado</h3>
+    <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Atualizado com proteção anti-robô</p>
+    
     <div id="chart"></div>
-    <button class="vote-btn" style="background:#0f172a" onclick="location.reload()">ATUALIZAR PLACAR</button>
+
+    <div class="audit-box">
+        <span class="audit-tag">CONTAGEM REAL</span><br>
+        Este placar reflete apenas votos com rastro humano verificado. Scripts e robôs detectados foram removidos conforme provas técnicas.
+        <br><br>
+        <span class="proof-link" onclick="window.open('https://i.ibb.co/6R0y9fV/Captura-votos-de-robo-eraclito-PALMAS.png')">Ver Prova Técnica 01</span> | 
+        <span class="proof-link" onclick="window.open('https://i.ibb.co/m0fH4Ym/ROBOERACLITO-NOVAMENTEb-ELEM.png')">Ver Prova Técnica 02</span>
+    </div>
+
+    <button class="vote-btn" style="background:#0f172a; margin-top:20px;" onclick="location.reload()">ATUALIZAR PLACAR</button>
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento Master</p>
 
 <div id="admin-panel">
   <h2>MODERAÇÃO DE VOTOS</h2>
@@ -79,7 +95,7 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-const LOCK_KEY = "VOTO_MODERADO_V10";
+const LOCK_KEY = "VOTO_AUDITADO_V13";
 
 function init() {
   let h = "";
@@ -125,7 +141,7 @@ function mostrar() {
 }
 
 function abrirAdm() {
-  if(prompt("Senha Master:") === "Art514671@") {
+  if(prompt("Senha:") === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
     carregarLogsMod();
   }
@@ -134,7 +150,7 @@ function abrirAdm() {
 function carregarLogsMod() {
   db.ref("voters").on("value", s => {
     let data = s.val() || {};
-    let h = "<table><tr><th>Data/Hora</th><th>Localização</th><th>Voto</th><th>Ação</th></tr>";
+    let h = "<table><tr><th>Data/Hora</th><th>Local</th><th>Voto</th><th>Ação</th></tr>";
     Object.keys(data).reverse().forEach(key => {
       let v = data[key];
       let nome = CANDIDATOS.find(c => c.id === v.can)?.n || v.can;
@@ -145,7 +161,7 @@ function carregarLogsMod() {
 }
 
 function removerRobo(key, canId) {
-    if(confirm("Remover este registro da contagem?")) {
+    if(confirm("Confirmar exclusão?")) {
         db.ref("voters/" + key).remove();
         db.ref("votes/" + canId).transaction(v => (v > 0 ? v - 1 : 0));
     }
