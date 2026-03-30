@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enquete Água Azul - Oficial</title>
 <style>
+  /* ESTILOS ORIGINAIS MANTIDOS */
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
   .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #ef4444; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
   .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 100px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -14,17 +15,21 @@
   .bar-row { margin-bottom: 18px; text-align: left; }
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
   .bar-fill { height: 100%; transition: width 1s; }
-  
-  /* Seção de Auditoria */
-  .audit-box { margin-top: 20px; padding: 15px; background: #fff1f2; border-radius: 10px; color: #991b1b; font-size: 12px; line-height: 1.4; border: 1px solid #fecaca; text-align: left; }
+  .audit-box { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; color: #475569; font-size: 12px; line-height: 1.4; border: 1px solid #e2e8f0; text-align: left; }
   .audit-tag { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: inline-block; }
-  .proof-img { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #fecaca; display: block; }
+  .proof-img { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; display: block; }
+
+  /* PAINEL ADM ORIGINAL MANTIDO */
+  #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; text-align: left; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
+  th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
+  .del-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados por nossa tecnologia foram removidos da contagem final para garantir a integridade da consulta pública.</marquee>
+  <marquee scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados por nossa tecnologia foram removidos da contagem final.</marquee>
 </div>
 
 <div class="card">
@@ -34,8 +39,8 @@
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
 
     <div class="audit-box">
-        <span class="audit-tag">AUDITORIA DE SEGURANÇA</span><br>
-        Identificamos ações automatizadas para inflar números. Para garantir a verdade, esses votos foram excluídos. Confira os logs de detecção abaixo:
+        <span class="audit-tag">AUDITORIA CONTRA ROBÔS</span><br>
+        Identificamos ações automatizadas. Votos neutralizados:
         <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
         <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
     </div>
@@ -43,27 +48,30 @@
 
   <div id="res-sec" style="display:none">
     <h3 style="color:#1a56db; margin-bottom:5px;">Placar Oficial Auditado</h3>
-    <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Votos de robôs foram descartados</p>
-    
     <div id="chart"></div>
-
     <div class="audit-box">
         <span class="audit-tag">PROVA TÉCNICA</span><br>
-        O resultado acima reflete apenas votos legítimos. Logs de auditoria dos registros neutralizados:
+        Logs de robôs neutralizados:
         <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
         <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
     </div>
-
     <button class="vote-btn" style="background:#0f172a; margin-top:20px;" onclick="location.reload()">ATUALIZAR PLACAR</button>
   </div>
 </div>
 
 <p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento</p>
 
+<div id="admin-panel">
+  <h2>MODERAÇÃO DE VOTOS</h2>
+  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">FECHAR PAINEL</button>
+  <div id="adm-data">Carregando logs...</div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
+// CONFIGURAÇÃO ORIGINAL
 const config = {
   apiKey: "AIzaSyC7WxD8TLuaDwwUnsGmxfrYIHRyKtK507s",
   authDomain: "enquete-agua-azul.firebaseapp.com",
@@ -80,7 +88,7 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-const LOCK_KEY = "VOTO_AUDITADO_V60";
+const LOCK_KEY = "VOTO_OFICIAL_V80";
 
 function init() {
   let h = "";
@@ -125,8 +133,32 @@ function mostrar() {
   });
 }
 
+// FUNÇÕES DE MODERAÇÃO ORIGINAIS RESTAURADAS
 function abrirAdm() {
-  if(prompt("Senha:") === "Art514671@") { alert("Acesso via Firebase Console."); }
+  if(prompt("Senha:") === "Art514671@") {
+    document.getElementById("admin-panel").style.display="block";
+    carregarLogsMod();
+  }
+}
+
+function carregarLogsMod() {
+  db.ref("voters").on("value", s => {
+    let data = s.val() || {};
+    let h = "<table><tr><th>Data/Hora</th><th>Local</th><th>Voto</th><th>Ação</th></tr>";
+    Object.keys(data).reverse().forEach(key => {
+      let v = data[key];
+      let nome = CANDIDATOS.find(c => c.id === v.can)?.n || v.can;
+      h += `<tr><td>${v.t}</td><td>${v.c}</td><td>${nome}</td><td><button class="del-btn" onclick="removerRobo('${key}', '${v.can}')">Excluir</button></td></tr>`;
+    });
+    document.getElementById("adm-data").innerHTML = h + "</table>";
+  });
+}
+
+function removerRobo(key, canId) {
+    if(confirm("Confirmar exclusão?")) {
+        db.ref("voters/" + key).remove();
+        db.ref("votes/" + canId).transaction(v => (v > 0 ? v - 1 : 0));
+    }
 }
 init();
 </script>
