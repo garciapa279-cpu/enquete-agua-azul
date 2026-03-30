@@ -15,20 +15,21 @@
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
   .bar-fill { height: 100%; transition: width 1s; }
   .audit-box { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; color: #475569; font-size: 12px; line-height: 1.4; border: 1px solid #e2e8f0; text-align: left; }
-  .audit-tag { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: inline-block; }
-  .proof-img { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; display: block; }
+  
+  /* ESTILO DA MENSAGEM DE AGRADECIMENTO */
+  .msg-final { color: #1e293b; text-align: left; font-size: 14px; line-height: 1.6; margin-bottom: 25px; border-left: 5px solid #1a56db; padding-left: 15px; background: #f0f7ff; padding: 15px; border-radius: 0 10px 10px 0; }
 
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; text-align: left; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
   .del-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
-  .stop-btn { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 5px; }
+  .stop-btn { background: #dc2626; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados foram removidos para garantir a integridade da consulta pública.</marquee>
+  <marquee id="aviso-topo" scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados foram removidos da contagem final.</marquee>
 </div>
 
 <div class="card">
@@ -38,23 +39,20 @@
     <div id="status-voto">
         <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
     </div>
-
-    <div class="audit-box">
-        <span class="audit-tag">AUDITORIA CONTRA ROBÔS</span><br>
-        Logs de registros neutralizados:
-        <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
-        <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
-    </div>
   </div>
 
   <div id="res-sec" style="display:none">
-    <h3 style="color:#1a56db; margin-bottom:5px;">Placar Oficial Auditado</h3>
+    <div id="agradecimento" class="msg-final" style="display:none">
+        <strong>Agradecimento à Comunidade:</strong><br>
+        Gostaríamos de agradecer a todos que contribuíram com sua opinião. Apesar dos ataques massivos de robôs que tentaram comprometer a verdade, nosso objetivo de ouvir a comunidade foi alcançado com transparência. Essa união é fundamental para o desenvolvimento da nossa região. Em breve teremos novas avaliações!
+    </div>
+    <h3 id="titulo-resultado" style="color:#1a56db; margin-bottom:20px;">Ranking Auditado</h3>
     <div id="chart"></div>
     <div class="audit-box">
-        <span class="audit-tag">PROVA TÉCNICA</span><br>
-        A contagem reflete apenas votos reais:
-        <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
-        <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
+        <span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: inline-block;">PROVA TÉCNICA</span><br>
+        Abaixo, os registros de ataques que foram neutralizados para garantir a integridade do seu voto:
+        <img src="Captura votos de robô eraclito PALMAS.png" style="width:100%; border-radius:8px; margin-top:10px; border: 1px solid #ddd;">
+        <img src="ROBÔERACLITO NOVAMENTEbELEM.png" style="width:100%; border-radius:8px; margin-top:10px; border: 1px solid #ddd;">
     </div>
     <button class="vote-btn" style="background:#0f172a; margin-top:20px;" onclick="location.reload()">ATUALIZAR PLACAR</button>
   </div>
@@ -63,16 +61,16 @@
 <p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento</p>
 
 <div id="admin-panel">
-  <h2>MODERAÇÃO</h2>
-  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">VOLTAR</button>
+  <h2>CONTROLE ADMINISTRATIVO</h2>
+  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">SAIR DO PAINEL</button>
   
-  <div style="margin-bottom:20px; border: 1px solid #334155; padding: 15px; border-radius: 10px;">
-    <strong>CONTROLE DA ENQUETE:</strong><br><br>
-    <button class="stop-btn" onclick="encerrarEnquete()">ENCERRAR ENQUETE</button>
+  <div style="margin-bottom:20px; border: 1px solid #334155; padding: 20px; border-radius: 10px; background: #1e293b;">
+    <strong>STATUS DA ENQUETE:</strong><br><br>
+    <button class="stop-btn" onclick="encerrarEnquete()">ENCERRAR E GERAR RANKING FINAL</button>
     <button class="stop-btn" style="background:#0e9f6e" onclick="abrirEnquete()">REABRIR ENQUETE</button>
   </div>
 
-  <div id="adm-data">Carregando logs...</div>
+  <div id="adm-data">Carregando logs de auditoria...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -95,7 +93,7 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-const LOCK_KEY = "VOTO_RANKING_V100";
+const LOCK_KEY = "VOTO_FINAL_COMPLETO_V1";
 
 function init() {
   let h = "";
@@ -104,7 +102,10 @@ function init() {
   
   db.ref("config/status").on("value", s => {
       if(s.val() === "encerrada") {
-          document.getElementById("status-voto").innerHTML = "<h3 style='color:red; margin-top:20px;'>VOTAÇÃO ENCERRADA</h3>";
+          document.getElementById("status-voto").innerHTML = "<h3 style='color:red; font-weight:bold; border: 2px solid red; padding: 10px; border-radius: 8px;'>ENQUETE ENCERRADA OFICIALMENTE</h3>";
+          document.getElementById("agradecimento").style.display = "block";
+          document.getElementById("titulo-resultado").innerText = "RANKING FINAL (AUDITADO)";
+          document.getElementById("aviso-topo").innerHTML = "<b>🛑 ENQUETE FINALIZADA:</b> Agradecemos a participação de toda a comunidade.";
           mostrar();
       }
   });
@@ -139,17 +140,18 @@ function mostrar() {
   db.ref("votes").on("value", s => {
     let vts = s.val() || {}, tot = Object.values(vts).reduce((a,b)=>a+b,0), h = "";
     
-    // CRIA UMA LISTA PARA ORDENAR POR VOTOS
+    // CALCULA PORCENTAGENS E CRIA RANKING
     let ranking = CANDIDATOS.map(c => {
-        return { ...c, votos: vts[c.id] || 0 };
+        let v = vts[c.id] || 0;
+        let p = tot > 0 ? ((v / tot) * 100).toFixed(1) : 0;
+        return { ...c, votos: v, porc: parseFloat(p) };
     });
 
-    // ORGANIZA DO MAIOR PARA O MENOR
+    // ORGANIZA DO MAIOR PARA O MENOR (%)
     ranking.sort((a, b) => b.votos - a.votos);
 
     ranking.forEach(c => {
-      let p = tot > 0 ? ((c.votos / tot) * 100).toFixed(1) : 0;
-      h += `<div class="bar-row"><b>${c.n} (${c.votos}v)</b><div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div></div>`;
+      h += `<div class="bar-row"><b>${c.n} - ${c.porc}% (${c.votos}v)</b><div class="bar-track"><div class="bar-fill" style="width:${c.porc}%; background:${c.c}"></div></div></div>`;
     });
     document.getElementById("chart").innerHTML = h;
     document.getElementById("vote-sec").style.display="none";
@@ -165,13 +167,13 @@ function abrirAdm() {
 }
 
 function encerrarEnquete() {
-    if(confirm("Encerrar votação agora? O ranking será exibido por ordem de votos.")) {
+    if(confirm("Deseja finalizar a enquete e travar os votos para gerar o ranking por porcentagem?")) {
         db.ref("config/status").set("encerrada");
     }
 }
 
 function abrirEnquete() {
-    if(confirm("Reabrir votação?")) {
+    if(confirm("Deseja reabrir a votação para o público?")) {
         db.ref("config/status").set("aberta");
     }
 }
@@ -183,14 +185,14 @@ function carregarLogsMod() {
     Object.keys(data).reverse().forEach(key => {
       let v = data[key];
       let nome = CANDIDATOS.find(c => c.id === v.can)?.n || v.can;
-      h += `<tr><td>${v.t}</td><td>${v.c}</td><td>${nome}</td><td><button class="del-btn" onclick="removerRobo('${key}', '${v.can}')">Excluir</button></td></tr>`;
+      h += `<tr><td>${v.t}</td><td>${v.c}</td><td>${nome}</td><td><button class="del-btn" onclick="removerVoto('${key}', '${v.can}')">Excluir</button></td></tr>`;
     });
     document.getElementById("adm-data").innerHTML = h + "</table>";
   });
 }
 
-function removerRobo(key, canId) {
-    if(confirm("Excluir registro?")) {
+function removerVoto(key, canId) {
+    if(confirm("Deseja realmente remover este registro de auditoria?")) {
         db.ref("voters/" + key).remove();
         db.ref("votes/" + canId).transaction(v => (v > 0 ? v - 1 : 0));
     }
