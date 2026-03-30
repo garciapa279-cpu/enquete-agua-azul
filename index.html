@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enquete Água Azul - Oficial</title>
 <style>
-  /* ESTILOS ORIGINAIS MANTIDOS */
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
   .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #ef4444; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
   .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 100px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -19,28 +18,30 @@
   .audit-tag { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: inline-block; }
   .proof-img { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; display: block; }
 
-  /* PAINEL ADM ORIGINAL MANTIDO */
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; text-align: left; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
   .del-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+  .stop-btn { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 5px; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados por nossa tecnologia foram removidos da contagem final.</marquee>
+  <marquee scrollamount="5"><b>🛡️ SISTEMA AUDITADO:</b> Votos sem rastro humano detectados foram removidos para garantir a integridade da consulta pública.</marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
     <h2 style="color:#1e293b; margin-top:0;">Consulta Popular</h2>
     <div id="list">Carregando candidatos...</div>
-    <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
+    <div id="status-voto">
+        <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
+    </div>
 
     <div class="audit-box">
         <span class="audit-tag">AUDITORIA CONTRA ROBÔS</span><br>
-        Identificamos ações automatizadas. Votos neutralizados:
+        Logs de registros neutralizados:
         <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
         <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
     </div>
@@ -51,7 +52,7 @@
     <div id="chart"></div>
     <div class="audit-box">
         <span class="audit-tag">PROVA TÉCNICA</span><br>
-        Logs de robôs neutralizados:
+        A contagem reflete apenas votos reais:
         <img src="Captura votos de robô eraclito PALMAS.png" class="proof-img">
         <img src="ROBÔERACLITO NOVAMENTEbELEM.png" class="proof-img">
     </div>
@@ -62,8 +63,15 @@
 <p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento</p>
 
 <div id="admin-panel">
-  <h2>MODERAÇÃO DE VOTOS</h2>
-  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">FECHAR PAINEL</button>
+  <h2>MODERAÇÃO</h2>
+  <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">VOLTAR</button>
+  
+  <div style="margin-bottom:20px; border: 1px solid #334155; padding: 15px; border-radius: 10px;">
+    <strong>CONTROLE DA ENQUETE:</strong><br><br>
+    <button class="stop-btn" onclick="encerrarEnquete()">ENCERRAR ENQUETE</button>
+    <button class="stop-btn" style="background:#0e9f6e" onclick="abrirEnquete()">REABRIR ENQUETE</button>
+  </div>
+
   <div id="adm-data">Carregando logs...</div>
 </div>
 
@@ -71,7 +79,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-// CONFIGURAÇÃO ORIGINAL
 const config = {
   apiKey: "AIzaSyC7WxD8TLuaDwwUnsGmxfrYIHRyKtK507s",
   authDomain: "enquete-agua-azul.firebaseapp.com",
@@ -88,12 +95,20 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-const LOCK_KEY = "VOTO_OFICIAL_V80";
+const LOCK_KEY = "VOTO_RANKING_V100";
 
 function init() {
   let h = "";
   CANDIDATOS.forEach(c => { h += `<button class="cand-btn" id="${c.id}" onclick="selecionar('${c.id}')">${c.n}</button>`; });
   document.getElementById("list").innerHTML = h;
+  
+  db.ref("config/status").on("value", s => {
+      if(s.val() === "encerrada") {
+          document.getElementById("status-voto").innerHTML = "<h3 style='color:red; margin-top:20px;'>VOTAÇÃO ENCERRADA</h3>";
+          mostrar();
+      }
+  });
+
   if(localStorage.getItem(LOCK_KEY)) mostrar();
 }
 
@@ -123,9 +138,18 @@ async function enviar() {
 function mostrar() {
   db.ref("votes").on("value", s => {
     let vts = s.val() || {}, tot = Object.values(vts).reduce((a,b)=>a+b,0), h = "";
-    CANDIDATOS.forEach(c => {
-      let v = vts[c.id]||0, p = tot>0?((v/tot)*100).toFixed(1):0;
-      h += `<div class="bar-row"><b>${c.n} (${v}v)</b><div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div></div>`;
+    
+    // CRIA UMA LISTA PARA ORDENAR POR VOTOS
+    let ranking = CANDIDATOS.map(c => {
+        return { ...c, votos: vts[c.id] || 0 };
+    });
+
+    // ORGANIZA DO MAIOR PARA O MENOR
+    ranking.sort((a, b) => b.votos - a.votos);
+
+    ranking.forEach(c => {
+      let p = tot > 0 ? ((c.votos / tot) * 100).toFixed(1) : 0;
+      h += `<div class="bar-row"><b>${c.n} (${c.votos}v)</b><div class="bar-track"><div class="bar-fill" style="width:${p}%; background:${c.c}"></div></div></div>`;
     });
     document.getElementById("chart").innerHTML = h;
     document.getElementById("vote-sec").style.display="none";
@@ -133,12 +157,23 @@ function mostrar() {
   });
 }
 
-// FUNÇÕES DE MODERAÇÃO ORIGINAIS RESTAURADAS
 function abrirAdm() {
   if(prompt("Senha:") === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
     carregarLogsMod();
   }
+}
+
+function encerrarEnquete() {
+    if(confirm("Encerrar votação agora? O ranking será exibido por ordem de votos.")) {
+        db.ref("config/status").set("encerrada");
+    }
+}
+
+function abrirEnquete() {
+    if(confirm("Reabrir votação?")) {
+        db.ref("config/status").set("aberta");
+    }
 }
 
 function carregarLogsMod() {
@@ -155,7 +190,7 @@ function carregarLogsMod() {
 }
 
 function removerRobo(key, canId) {
-    if(confirm("Confirmar exclusão?")) {
+    if(confirm("Excluir registro?")) {
         db.ref("voters/" + key).remove();
         db.ref("votes/" + canId).transaction(v => (v > 0 ? v - 1 : 0));
     }
