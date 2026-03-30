@@ -6,10 +6,10 @@
 <title>Enquete Água Azul - Oficial</title>
 <style>
   body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-  .alert-bar { background: #1e293b; color: #f8fafc; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #3b82f6; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
-  .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 100px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 300px; }
-  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; font-size: 16px; text-align: left; background: #f8fafc; color: #333; }
-  .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; }
+  .alert-bar { background: #b91c1c; color: white; padding: 12px 0; font-size: 13px; border-bottom: 2px solid #f87171; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
+  .card { background: white; color: #333; padding: 30px; border-radius: 15px; max-width: 480px; margin: 100px auto 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 400px; }
+  .cand-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; cursor: pointer; border-radius: 10px; font-weight: 600; text-align: left; background: #f8fafc; color: #333; display: block; width: 100%; }
+  .selected { border-color: #1a56db; background: #eff6ff; color: #1a56db; outline: 2px solid #1a56db; }
   .vote-btn { width: 100%; padding: 18px; background: #1a56db; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
   .bar-row { margin-bottom: 18px; text-align: left; }
   .bar-track { background: #f1f5f9; height: 20px; border-radius: 10px; overflow: hidden; margin: 6px 0; border: 1px solid #e2e8f0; }
@@ -17,19 +17,19 @@
   #admin-panel { display: none; position: fixed; inset: 0; background: #0f172a; padding: 20px; z-index: 9999; overflow-y: auto; text-align: left; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: #1e293b; color: white; }
   th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
-  .del-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+  .del-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 10px; }
 </style>
 </head>
 <body>
 
 <div class="alert-bar">
-  <marquee scrollamount="5"><b>📢 COMUNICADO:</b> Auditoria em tempo real contra robôs. Encerramento amanhã às 19:00.</marquee>
+  <marquee scrollamount="5"><b>🚨 AUDITORIA RIGOROSA:</b> Votos identificados como robôs estão sendo deletados individualmente pela moderação.</marquee>
 </div>
 
 <div class="card">
   <div id="vote-sec">
     <h2 style="color:#1e293b; margin-top:0;">Consulta Popular</h2>
-    <div id="list"></div>
+    <div id="list">Carregando candidatos...</div>
     <button class="vote-btn" id="btn-principal" onclick="enviar()">CONFIRMAR VOTO</button>
   </div>
   <div id="res-sec" style="display:none">
@@ -39,17 +39,17 @@
   </div>
 </div>
 
-<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Acesso ADM</p>
+<p onclick="abrirAdm()" style="margin-top:50px; color:rgba(255,255,255,0.05); cursor:pointer;">Gerenciamento</p>
 
 <div id="admin-panel">
-  <h2>PAINEL DE AUDITORIA MANUAL</h2>
-  <button onclick="location.reload()" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">SAIR DO PAINEL</button>
+  <h2>MODERAÇÃO DE VOTOS (ROBÔS)</h2>
+  <button onclick="location.reload()" style="background:#4b5563; color:white; padding:10px; border:none; border-radius:5px; margin-bottom:20px;">SAIR</button>
   
   <div style="background:#1e293b; padding:15px; border-radius:10px; margin-bottom:20px;">
-    <p><b>Instrução:</b> Para excluir um voto suspeito, clique no botão vermelho "Excluir" ao lado do registro.</p>
+    <p><b>Ação Manual:</b> Clique em "Excluir" para qualquer voto suspeito de robô. O placar ajustará automaticamente.</p>
   </div>
 
-  <div id="adm-data">Carregando logs...</div>
+  <div id="adm-data">Carregando registros de votos...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -72,8 +72,7 @@ const CANDIDATOS = [
   {id:"yan", n:"Yan Massaro motos", c:"#ff0000"}, {id:"joão", n:"João da Sec de Obras", c:"#3f83f8"}
 ];
 
-let sel = null;
-const LOCK_KEY = "VOTO_FINAL_AGUA_AZUL";
+const LOCK_KEY = "VOTO_MODERADO_V7";
 
 function init() {
   let h = "";
@@ -83,28 +82,31 @@ function init() {
 }
 
 function selecionar(id) {
-  sel = id;
+  window.selectedID = id;
   document.querySelectorAll('.cand-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById(id).classList.add('selected');
 }
 
 async function enviar() {
   if(localStorage.getItem(LOCK_KEY)) return;
-  if(!sel) return alert("Selecione um candidato.");
+  if(!window.selectedID) return alert("Selecione um candidato primeiro.");
+  
   const btn = document.getElementById("btn-principal");
   btn.disabled = true;
+  btn.innerText = "Gravando...";
+
   try { 
     const r = await fetch('https://ipapi.co/json/'); 
     const d = await r.json(); 
-    const infoLocal = (d.city || "Região") + " (" + (d.region_code || "PA") + ")";
+    const infoLocal = (d.city || "Região") + " (" + (d.region_code || "??") + ")";
     
     const vId = Date.now();
-    db.ref("voters/" + vId).set({c:infoLocal, can:sel, t:new Date().toLocaleString('pt-BR')});
-    db.ref("votes/" + sel).transaction(v => (v||0)+1);
+    db.ref("voters/" + vId).set({c:infoLocal, can:window.selectedID, t:new Date().toLocaleString('pt-BR')});
+    db.ref("votes/" + window.selectedID).transaction(v => (v||0)+1);
     
     localStorage.setItem(LOCK_KEY, "true");
     mostrar();
-  } catch(e){ btn.disabled = false; }
+  } catch(e){ btn.disabled = false; btn.innerText = "CONFIRMAR VOTO"; }
 }
 
 function mostrar() {
@@ -121,27 +123,34 @@ function mostrar() {
 }
 
 function abrirAdm() {
-  if(prompt("Senha:") === "Art514671@") {
+  let p = prompt("Senha Master:");
+  if(p === "Art514671@") {
     document.getElementById("admin-panel").style.display="block";
-    carregarLogs();
+    carregarLogsMod();
   }
 }
 
-function carregarLogs() {
+function carregarLogsMod() {
   db.ref("voters").on("value", s => {
     let data = s.val() || {};
-    let h = "<table><tr><th>Data</th><th>Local</th><th>Candidato</th><th>Ação</th></tr>";
-    Object.keys(data).reverse().forEach(key => {
+    let h = "<table><tr><th>Data/Hora</th><th>Localização</th><th>Voto</th><th>Moderação</th></tr>";
+    let keys = Object.keys(data).reverse();
+    keys.forEach(key => {
       let v = data[key];
       let nome = CANDIDATOS.find(c => c.id === v.can)?.n || v.can;
-      h += `<tr><td>${v.t}</td><td>${v.c}</td><td>${nome}</td><td><button class="del-btn" onclick="apagarVoto('${key}', '${v.can}')">Excluir</button></td></tr>`;
+      h += `<tr>
+        <td>${v.t}</td>
+        <td>${v.c}</td>
+        <td><b>${nome}</b></td>
+        <td><button class="del-btn" onclick="removerRobo('${key}', '${v.can}')">Excluir Voto</button></td>
+      </tr>`;
     });
     document.getElementById("adm-data").innerHTML = h + "</table>";
   });
 }
 
-function apagarVoto(key, canId) {
-    if(confirm("Deseja mesmo remover este voto? O placar será atualizado automaticamente.")) {
+function removerRobo(key, canId) {
+    if(confirm("Confirmar a exclusão deste voto por suspeita de robô?")) {
         db.ref("voters/" + key).remove();
         db.ref("votes/" + canId).transaction(v => (v > 0 ? v - 1 : 0));
     }
